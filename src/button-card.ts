@@ -71,7 +71,7 @@ const helperPromise = new Promise(async (resolve) => {
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  BUTTON-CARD  \n%c Version ${pjson.version} `,
+  `%c  BUTTON-CARD  \n%c Version ${pjson.version} sm`,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -169,9 +169,14 @@ class ButtonCard extends LitElement {
     if (!this._config || !this._hass) return html``;
     this._stateObj = this._config!.entity ? this._hass!.states[this._config!.entity] : undefined;
     try {
-      this._evaledVariables = this._config!.variables
-        ? this._objectEvalTemplate(this._stateObj, this._config!.variables)
-        : undefined;
+      this._evaledVariables = undefined;
+      if (this._config!.variables) {
+        this._evaledVariables = {};
+        const varClone = copy(this._config!.variables);
+        Object.keys(this._config!.variables).forEach((key) => {
+          this._evaledVariables[key] = this._getTemplateOrValue(this._stateObj, varClone[key]);
+        });
+      }
       return this._cardHtml();
     } catch (e) {
       if (e.stack) console.error(e.stack);
